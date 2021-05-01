@@ -33,6 +33,7 @@ android {
 }
 
 dependencies {
+
     //exifinterface를 위해 추가.
     implementation "androidx.exifinterface:exifinterface:1.3.2"
 
