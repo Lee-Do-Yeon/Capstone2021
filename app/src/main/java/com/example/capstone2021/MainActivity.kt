@@ -38,13 +38,6 @@ class MainActivity : AppCompatActivity() {
             try{
                 val uri: Uri? = data.data
                 intent.putExtra("uri", uri.toString())
-                val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-                //이미지 리사이징
-                val nh = (bitmap.height * (1024.0 / bitmap.width)).toInt()
-                val scaled = Bitmap.createScaledBitmap(bitmap, 1024, nh, true)
-                val imgView : ImageView = findViewById(R.id.showImageView)
-                imgView.setImageBitmap(scaled)
-
                 startActivity(intent)
             } catch (e: Exception) {
                 e.printStackTrace()
