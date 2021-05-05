@@ -25,8 +25,6 @@ class ExifActivity : AppCompatActivity() {
         if( str != null){
             Log.d("test", "test : $str")
             val uri: Uri = parse(str)
-            val imgView : ImageView = findViewById(R.id.showImageView)
-            imgView.setImageURI(uri)
             this.loadExifFromImage(uri)
         }
         else{
