@@ -24,9 +24,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun loadImagefromGallery(v: View) {
-        val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.type = "image/*"
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST)
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = MediaStore.Images.Media.CONTENT_TYPE
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
     }
 
     //버전분기 필요함
