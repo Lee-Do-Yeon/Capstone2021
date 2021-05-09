@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.ImageView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import com.example.capstone2021.ExifActivity
 
 
 class MainActivity : AppCompatActivity() {

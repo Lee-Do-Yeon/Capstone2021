@@ -1,91 +1,90 @@
 package com.example.capstone2021
 
-import android.media.ExifInterface
+import androidx.exifinterface.media.ExifInterface //여기 수정
 import android.net.Uri
 import android.net.Uri.parse
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.webkit.MimeTypeMap
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import com.example.capstone2021.R
+import java.io.File
 import java.io.IOException
 
 
-
 class ExifActivity : AppCompatActivity() {
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_exif)
 
         var intent = getIntent()
-        var str = intent.extras!!.getString("uri")
-        if( str != null){
-            Log.d("test", "test : $str")
-            val uri: Uri = parse(str)
+        var uristr = intent.extras!!.getString("uri")
+
+        if( uristr != null){
+            val uri: Uri = parse(uristr)
             this.loadExifFromImage(uri)
         }
         else{
-            Log.d("test", "test : null")
+            Log.d("uristr", "uristr is null")
         }
+        val delete_button : Button = findViewById(R.id.delete_button);
+        delete_button.setOnClickListener{
+            if( uristr != null){
+                val uri: Uri = parse(uristr)
+                this.deleteExifData(uri)
+            }
+        }
+
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     fun loadExifFromImage(uri: Uri?) {
         val imgView : ImageView = findViewById(R.id.showImageView)
         imgView.setImageURI(uri)
 
-        var exif : ExifInterface? = null
-        try{
-            val `in` = contentResolver.openInputStream(uri!!)!!
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                exif = ExifInterface(`in`)
-            }
-        } catch (e: IOException)
-        {
-            Log.d("error", "catch error")
-            e.printStackTrace()
-        }
+        val path : String = getPathFromUri(uri)
 
-        val lat = exif?.getAttribute(ExifInterface.TAG_GPS_LATITUDE); //위도
-        val lat_ref = exif?.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF); //위도가 북위인지 남위인지
-        val lng = exif?.getAttribute(ExifInterface.TAG_GPS_LONGITUDE); //경도
-        val lng_ref = exif?.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF); //경도가 북위인지 남위인지
+        var exif = ExifInterface(path)
+
+        val lat = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE) //위도
+        val lng = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE) //경도
+        Log.d("test_before_delete", "$lat, $lng")
 
         val textview : TextView = findViewById(R.id.textview)
-        textview.setText("$lat | $lat_ref | $lng | $lng_ref")
+        textview.setText("$lat | $lng")
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
-    fun deleteExifdata(uri: Uri?) {
-        var exif : ExifInterface? = null
-        try{
-            val `in` = contentResolver.openInputStream(uri!!)!!
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                exif = ExifInterface(`in`)
-            }
-        } catch (e: IOException)
-        {
-            Log.d("error", "catch error")
-            e.printStackTrace()
-        }
+    fun getPathFromUri(uri: Uri?): String {
+        val cursor = contentResolver.query(uri!!, null, null, null, null)
+        cursor!!.moveToNext()
+        val path = cursor.getString(cursor.getColumnIndex("_data"))
+        cursor.close()
+        return path
+    }
 
-        exif?.setAttribute(ExifInterface.TAG_GPS_LATITUDE, null)
-        exif?.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, null)
-        exif?.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, null)
-        exif?.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, null)
+    fun deleteExifData(uri: Uri?) {
+        val path : String = getPathFromUri(uri)
 
-        val lat = exif?.getAttribute(ExifInterface.TAG_GPS_LATITUDE); //위도
-        val lat_ref = exif?.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF); //위도가 북위인지 남위인지
-        val lng = exif?.getAttribute(ExifInterface.TAG_GPS_LONGITUDE); //경도
-        val lng_ref = exif?.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF); //경도가 북위인지 남위인지
+        var exif = ExifInterface(path)
+
+        exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, null)
+        exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, null)
+
+        exif.saveAttributes();
+
+        val lat = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE) //위도
+        val lng = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE) //경도
 
         val textview : TextView = findViewById(R.id.textview)
-        textview.setText("$lat | $lat_ref | $lng | $lng_ref")
-        //exif?.saveAttributes()
+        textview.setText("$lat | $lng")
+        Log.d("test_after_delete", "$lat | $lng")
     }
-
 
 }
+
