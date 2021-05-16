@@ -1,12 +1,24 @@
+/*
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.example.capstone2021
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
+//import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest
 import android.content.Intent
-import android.content.res.AssetManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
@@ -21,33 +33,29 @@ import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
-import com.google.api.client.http.HttpTransport
 import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.vision.v1.Vision
 import com.google.api.services.vision.v1.VisionRequest
 import com.google.api.services.vision.v1.VisionRequestInitializer
-import com.google.api.services.vision.v1.model.AnnotateImageRequest
-import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest
-import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse
-import com.google.api.services.vision.v1.model.EntityAnnotation
-import com.google.api.services.vision.v1.model.Feature
-import com.google.api.services.vision.v1.model.Image
-import java.io.*
+import com.google.api.services.vision.v1.model.*
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.*
-
 
 class VisionActivity : AppCompatActivity() {
     private var mImageDetails: TextView? = null
     private var mMainImage: ImageView? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    //Main
+    protected fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_vision)
-
+        setContentView(R.layout.activity_main)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         val fab: FloatingActionButton = findViewById(R.id.fab)
@@ -58,9 +66,7 @@ class VisionActivity : AppCompatActivity() {
                 .setPositiveButton(
                     R.string.dialog_select_gallery,
                     { dialog, which -> startGalleryChooser() })
-                .setNegativeButton(
-                    R.string.dialog_select_tessract,
-                    { dialog, which -> copyFiles() })
+            //                    .setNegativeButton(R.string.dialog_select_tessract, (dialog, which) -> copyFiles());
             builder.create().show()
         })
         mImageDetails = findViewById(R.id.image_details)
@@ -145,6 +151,7 @@ class VisionActivity : AppCompatActivity() {
             }
         }
     }
+
     //start vision API
     fun uploadImage(uri: Uri?) {
         if (uri != null) {
@@ -167,8 +174,8 @@ class VisionActivity : AppCompatActivity() {
     }
 
     @Throws(IOException::class)
-    private fun prepareAnnotationRequest(bitmap: Bitmap): Annotate {
-        val httpTransport: HttpTransport = AndroidHttp.newCompatibleTransport()
+    private fun prepareAnnotationRequest(bitmap: Bitmap): Vision.Images.Annotate {
+        val httpTransport = AndroidHttp.newCompatibleTransport()
         val jsonFactory: JsonFactory = GsonFactory.getDefaultInstance()
         val requestInitializer: VisionRequestInitializer = object : VisionRequestInitializer(
             CLOUD_VISION_API_KEY
@@ -178,19 +185,21 @@ class VisionActivity : AppCompatActivity() {
              * headers. This enables use of a restricted cloud platform API key.
              */
             @Throws(IOException::class)
-            protected fun initializeVisionRequest(visionRequest: VisionRequest<*>) {
+            override fun initializeVisionRequest(visionRequest: VisionRequest<*>) {
                 super.initializeVisionRequest(visionRequest)
                 val packageName: String = getPackageName()
-                visionRequest.getRequestHeaders().set(ANDROID_PACKAGE_HEADER, packageName)
+                visionRequest.requestHeaders[ANDROID_PACKAGE_HEADER] =
+                    packageName
                 val sig: String = PackageManagerUtils.getSignature(getPackageManager(), packageName)
-                visionRequest.getRequestHeaders().set(ANDROID_CERT_HEADER, sig)
+                visionRequest.requestHeaders[ANDROID_CERT_HEADER] =
+                    sig
             }
         }
-        val builder: Vision.Builder = Builder(httpTransport, jsonFactory, null)
+        val builder = Vision.Builder(httpTransport, jsonFactory, null)
         builder.setVisionRequestInitializer(requestInitializer)
-        val vision: Vision = builder.build()
+        val vision = builder.build()
         val batchAnnotateImagesRequest = BatchAnnotateImagesRequest()
-        batchAnnotateImagesRequest.setRequests(object : ArrayList<AnnotateImageRequest?>() {
+        batchAnnotateImagesRequest.requests = object : ArrayList<AnnotateImageRequest?>() {
             init {
                 val annotateImageRequest = AnnotateImageRequest()
 
@@ -204,43 +213,43 @@ class VisionActivity : AppCompatActivity() {
 
                 // Base64 encode the JPEG
                 base64EncodedImage.encodeContent(imageBytes)
-                annotateImageRequest.setImage(base64EncodedImage)
+                annotateImageRequest.image = base64EncodedImage
 
                 // add the features we want
-                annotateImageRequest.setFeatures(object : ArrayList<Feature?>() {
+                annotateImageRequest.features = object : ArrayList<Feature?>() {
                     init {
                         val textDetection = Feature()
-                        textDetection.setType("TEXT_DETECTION")
-                        textDetection.setMaxResults(MAX_LABEL_RESULTS)
+                        textDetection.type = "TEXT_DETECTION"
+                        textDetection.maxResults = MAX_LABEL_RESULTS
                         add(textDetection)
                     }
-                })
+                }
 
                 // Add the list of one thing to the request
                 add(annotateImageRequest)
             }
-        })
-        val annotateRequest: Annotate = vision.images().annotate(batchAnnotateImagesRequest)
+        }
+        val annotateRequest = vision.images().annotate(batchAnnotateImagesRequest)
         // Due to a bug: requests to Vision API containing large images fail when GZipped.
-        annotateRequest.setDisableGZipContent(true)
+        annotateRequest.disableGZipContent = true
         Log.d(TAG, "created Cloud Vision request object, sending request")
         return annotateRequest
     }
 
     private class LableDetectionTask internal constructor(
         activity: MainActivity,
-        annotate: Annotate
+        annotate: Vision.Images.Annotate
     ) :
         AsyncTask<Any?, Void?, String>() {
         private val mActivityWeakReference: WeakReference<MainActivity>
-        private val mRequest: Annotate
+        private val mRequest: Vision.Images.Annotate
         protected override fun doInBackground(vararg params: Any): String {
             try {
                 Log.d(TAG, "created Cloud Vision request object, sending request")
-                val response: BatchAnnotateImagesResponse = mRequest.execute()
+                val response = mRequest.execute()
                 return convertResponseToString(response)
             } catch (e: GoogleJsonResponseException) {
-                Log.d(TAG, "failed to make API request because " + e.getContent())
+                Log.d(TAG, "failed to make API request because " + e.content)
             } catch (e: IOException) {
                 Log.d(
                     TAG, "failed to make API request because of other IOException " +
@@ -315,10 +324,10 @@ class VisionActivity : AppCompatActivity() {
         const val CAMERA_IMAGE_REQUEST = 3
         private fun convertResponseToString(response: BatchAnnotateImagesResponse): String {
             val message = StringBuilder("I found these things:\n\n")
-            val text: List<EntityAnnotation> = response.getResponses().get(0).getTextAnnotations()
+            val text = response.responses[0].textAnnotations
             if (text != null) {
                 for (label in text) {
-                    message.append(java.lang.String.format(Locale.US, "%s", label.getDescription()))
+                    message.append(String.format(Locale.US, "%s", label.description))
                     message.append("\n")
                 }
             } else {
@@ -327,21 +336,4 @@ class VisionActivity : AppCompatActivity() {
             return message.toString()
         }
     }
-    }
 }
-
-
-class VisionActivity : AppCompatActivity() {
-    private var mImageDetails: TextView? = null
-    private var mMainImage: ImageView? = null
-
-
-    //Main
-    protected fun onCreate(savedInstanceState: Bundle?) {
-}
-//class VisionActivity : AppCompatActivity() {
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        setContentView(R.layout.activity_vision2)
-//    }
-//}
