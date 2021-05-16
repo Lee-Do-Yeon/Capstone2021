@@ -22,6 +22,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        buildTypes.each {
+            //Google vision API KEY
+            it.buildConfigField ('String', 'API_KEY', '"AIzaSyDMajsZ5Wv1LAWkj3gumbO02kVuZ6GLYmg"')
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -36,18 +40,20 @@ dependencies {
 
     //exifinterface를 위해 추가.
     implementation "androidx.exifinterface:exifinterface:1.3.2"
-    //tesseract를 위해 추가.
-    implementation "com.rmtheis:tess-two:9.1.0"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.3.2'
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.3.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     //vision ai를 위해 추가.
-    implementation 'com.google.cloud:libraries-bom:20.1.0'
-    compile 'com.google.cloud:google-cloud-vision'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:30.0.3'
+    compile 'com.android.support:design:30.0.3'
+    compile 'com.google.api-client:google-api-client-android:1.23.0' exclude module: 'httpclient'
+    compile 'com.google.http-client:google-http-client-gson:1.23.0' exclude module: 'httpclient'
+    compile 'com.google.apis:google-api-services-vision:v1-rev369-1.23.0'
 
-    testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }
