@@ -15,7 +15,6 @@
  */
 package com.example.capstone2021
 
-//import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest
 import android.content.Intent
 import android.graphics.Bitmap
@@ -24,16 +23,16 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.support.design.widget.FloatingActionButton
+import androidx.core.content.FileProvider
 import android.support.v4.content.FileProvider
-import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.Toolbar
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.json.JsonFactory
@@ -48,27 +47,26 @@ import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.*
 
+
 class VisionActivity : AppCompatActivity() {
     private var mImageDetails: TextView? = null
     private var mMainImage: ImageView? = null
 
     //Main
-    protected fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         val fab: FloatingActionButton = findViewById(R.id.fab)
-        fab.setOnClickListener({ view ->
-            val builder: AlertDialog.Builder = Builder(this@MainActivity)
+        fab.setOnClickListener { view ->
+            val builder: AlertDialog.Builder = Builder(this@VisionActivity)
             builder
                 .setMessage(R.string.dialog_select_prompt)
-                .setPositiveButton(
-                    R.string.dialog_select_gallery,
-                    { dialog, which -> startGalleryChooser() })
-            //                    .setNegativeButton(R.string.dialog_select_tessract, (dialog, which) -> copyFiles());
+                .setPositiveButton(R.string.dialog_select_gallery) { dialog, which -> startGalleryChooser() }
+            //    .setNegativeButton(R.string.dialog_select_tessract) { dialog, which -> copyFiles() }
             builder.create().show()
-        })
+        }
         mImageDetails = findViewById(R.id.image_details)
         mMainImage = findViewById(R.id.main_image)
     }
@@ -100,7 +98,7 @@ class VisionActivity : AppCompatActivity() {
         ) {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             val photoUri: Uri = FileProvider.getUriForFile(
-                this, getApplicationContext().getPackageName().toString() + ".provider",
+                this, applicationContext.packageName + ".provider",
                 cameraFile
             )
             intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
@@ -111,25 +109,25 @@ class VisionActivity : AppCompatActivity() {
 
     val cameraFile: File
         get() {
-            val dir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+            val dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
             return File(dir, FILE_NAME)
         }
 
-    protected fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == GALLERY_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             uploadImage(data.data)
         } else if (requestCode == CAMERA_IMAGE_REQUEST && resultCode == RESULT_OK) {
             val photoUri: Uri = FileProvider.getUriForFile(
-                this, getApplicationContext().getPackageName().toString() + ".provider",
+                this, applicationContext.packageName + ".provider",
                 cameraFile
             )
             uploadImage(photoUri)
         }
     }
 
-    fun onRequestPermissionsResult(
-        requestCode: Int, @NonNull permissions: Array<String?>?, @NonNull grantResults: IntArray?
+    override fun onRequestPermissionsResult(
+        requestCode: Int, @NonNull permissions: Array<String>, @NonNull grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
@@ -158,7 +156,7 @@ class VisionActivity : AppCompatActivity() {
             try {
                 // scale the image to save on bandwidth
                 val bitmap = scaleBitmapDown(
-                    MediaStore.Images.Media.getBitmap(getContentResolver(), uri),
+                    MediaStore.Images.Media.getBitmap(contentResolver, uri),
                     MAX_DIMENSION
                 )
                 callCloudVision(bitmap)
@@ -187,12 +185,11 @@ class VisionActivity : AppCompatActivity() {
             @Throws(IOException::class)
             override fun initializeVisionRequest(visionRequest: VisionRequest<*>) {
                 super.initializeVisionRequest(visionRequest)
-                val packageName: String = getPackageName()
+                val packageName = packageName
                 visionRequest.requestHeaders[ANDROID_PACKAGE_HEADER] =
                     packageName
-                val sig: String = PackageManagerUtils.getSignature(getPackageManager(), packageName)
-                visionRequest.requestHeaders[ANDROID_CERT_HEADER] =
-                    sig
+                val sig: String = PackageManagerUtils.getSignature(packageManager, packageName)
+                visionRequest.requestHeaders[ANDROID_CERT_HEADER] = sig
             }
         }
         val builder = Vision.Builder(httpTransport, jsonFactory, null)
@@ -261,8 +258,8 @@ class VisionActivity : AppCompatActivity() {
 
         override fun onPostExecute(result: String) {
             val activity = mActivityWeakReference.get()
-            if (activity != null && !activity.isFinishing()) {
-                val imageDetail: TextView = activity.findViewById(R.id.image_details)
+            if (activity != null && !activity.isFinishing) {
+                val imageDetail = activity.findViewById<TextView>(R.id.image_details)
                 imageDetail.text = result
             }
         }
@@ -275,7 +272,7 @@ class VisionActivity : AppCompatActivity() {
 
     private fun callCloudVision(bitmap: Bitmap) {
         // Switch text to loading
-        mImageDetails.setText(R.string.loading_message)
+        mImageDetails!!.setText(R.string.loading_message)
 
         // Do the real work in an async task, because we need to use the network anyway
         try {
@@ -311,7 +308,7 @@ class VisionActivity : AppCompatActivity() {
     }
 
     companion object {
-        private val CLOUD_VISION_API_KEY: String = BuildConfig.API_KEY
+        private const val CLOUD_VISION_API_KEY = BuildConfig.API_KEY
         const val FILE_NAME = "temp.jpg"
         private const val ANDROID_CERT_HEADER = "X-Android-Cert"
         private const val ANDROID_PACKAGE_HEADER = "X-Android-Package"
