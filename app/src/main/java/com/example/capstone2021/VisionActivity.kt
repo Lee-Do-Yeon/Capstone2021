@@ -72,7 +72,9 @@ class VisionActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         val fab: FloatingActionButton = findViewById(R.id.fab)
         fab.setOnClickListener { view ->
-            val builder: AlertDialog.Builder = Builder(this@VisionActivity)
+            val builder: AlertDialog.Builder = Builder(this@
+
+                    VisionActivity)
             builder
                 .setMessage(R.string.dialog_select_prompt)
                 .setPositiveButton(R.string.dialog_select_gallery) { dialog, which -> startGalleryChooser() }
