@@ -16,41 +16,42 @@
 
 package com.example.capstone2021;
 
-import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.app.Activity
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import java.util.*
 
-import java.util.ArrayList;
 
-public class PermissionUtils {
-    public static boolean requestPermission(
-            Activity activity, int requestCode, String... permissions) {
-        boolean granted = true;
-        ArrayList<String> permissionsNeeded = new ArrayList<>();
-
-        for (String s : permissions) {
-            int permissionCheck = ContextCompat.checkSelfPermission(activity, s);
-            boolean hasPermission = (permissionCheck == PackageManager.PERMISSION_GRANTED);
-            granted &= hasPermission;
+object PermissionUtils {
+    fun requestPermission(
+        activity: Activity?, requestCode: Int, vararg permissions: String
+    ): Boolean {
+        var granted = true
+        val permissionsNeeded = ArrayList<String>()
+        for (s in permissions) {
+            val permissionCheck: Int = ContextCompat.checkSelfPermission(activity, s)
+            val hasPermission = permissionCheck == PackageManager.PERMISSION_GRANTED
+            granted = granted and hasPermission
             if (!hasPermission) {
-                permissionsNeeded.add(s);
+                permissionsNeeded.add(s)
             }
         }
-
-        if (granted) {
-            return true;
+        return if (granted) {
+            true
         } else {
-            ActivityCompat.requestPermissions(activity,
-                    permissionsNeeded.toArray(new String[permissionsNeeded.size()]),
-                    requestCode);
-            return false;
+            ActivityCompat.requestPermissions(
+                activity,
+                permissionsNeeded.toTypedArray(),
+                requestCode
+            )
+            false
         }
     }
 
-
-    public static boolean permissionGranted(
-            int requestCode, int permissionCode, int[] grantResults) {
-        return requestCode == permissionCode && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+    fun permissionGranted(
+        requestCode: Int, permissionCode: Int, grantResults: IntArray
+    ): Boolean {
+        return requestCode == permissionCode && grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
     }
 }

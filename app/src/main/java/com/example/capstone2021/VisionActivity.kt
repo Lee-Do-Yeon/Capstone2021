@@ -23,8 +23,6 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import androidx.core.content.FileProvider
-import android.support.v4.content.FileProvider
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
@@ -32,6 +30,7 @@ import android.widget.Toast
 import android.widget.Toolbar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
@@ -49,6 +48,19 @@ import java.util.*
 
 
 class VisionActivity : AppCompatActivity() {
+    private val CLOUD_VISION_API_KEY = BuildConfig.API_KEY
+    val FILE_NAME = "temp.jpg"
+    private val ANDROID_CERT_HEADER = "X-Android-Cert"
+    private val ANDROID_PACKAGE_HEADER = "X-Android-Package"
+    private val MAX_LABEL_RESULTS = 10
+    private val MAX_DIMENSION = 1200
+
+    private val TAG = MainActivity::class.java.simpleName
+    private val GALLERY_PERMISSIONS_REQUEST = 0
+    private val GALLERY_IMAGE_REQUEST = 1
+    val CAMERA_PERMISSIONS_REQUEST = 2
+    val CAMERA_IMAGE_REQUEST = 3
+
     private var mImageDetails: TextView? = null
     private var mMainImage: ImageView? = null
 
@@ -64,7 +76,7 @@ class VisionActivity : AppCompatActivity() {
             builder
                 .setMessage(R.string.dialog_select_prompt)
                 .setPositiveButton(R.string.dialog_select_gallery) { dialog, which -> startGalleryChooser() }
-            //    .setNegativeButton(R.string.dialog_select_tessract) { dialog, which -> copyFiles() }
+//                .setNegativeButton(R.string.dialog_select_tessract) { dialog, which -> copyFiles() }
             builder.create().show()
         }
         mImageDetails = findViewById(R.id.image_details)
@@ -97,9 +109,9 @@ class VisionActivity : AppCompatActivity() {
             )
         ) {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            val photoUri: Uri = FileProvider.getUriForFile(
+            val photoUri = FileProvider.getUriForFile(
                 this, applicationContext.packageName + ".provider",
-                cameraFile
+                getCameraFile()!!
             )
             intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -107,29 +119,28 @@ class VisionActivity : AppCompatActivity() {
         }
     }
 
-    val cameraFile: File
-        get() {
-            val dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            return File(dir, FILE_NAME)
-        }
+    fun getCameraFile(): File? {
+        val dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File(dir, FILE_NAME)
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == GALLERY_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             uploadImage(data.data)
         } else if (requestCode == CAMERA_IMAGE_REQUEST && resultCode == RESULT_OK) {
-            val photoUri: Uri = FileProvider.getUriForFile(
+            val photoUri = FileProvider.getUriForFile(
                 this, applicationContext.packageName + ".provider",
-                cameraFile
+                getCameraFile()!!
             )
             uploadImage(photoUri)
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int, @NonNull permissions: Array<String>, @NonNull grantResults: IntArray
+    fun onRequestPermissionsResult(
+        requestCode: Int, @NonNull permissions: Array<String?>?, @NonNull grantResults: IntArray?
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        super.onRequestPermissionsResult(requestCode, permissions!!, grantResults!!)
         when (requestCode) {
             CAMERA_PERMISSIONS_REQUEST -> if (PermissionUtils.permissionGranted(
                     requestCode,
@@ -175,23 +186,21 @@ class VisionActivity : AppCompatActivity() {
     private fun prepareAnnotationRequest(bitmap: Bitmap): Vision.Images.Annotate {
         val httpTransport = AndroidHttp.newCompatibleTransport()
         val jsonFactory: JsonFactory = GsonFactory.getDefaultInstance()
-        val requestInitializer: VisionRequestInitializer = object : VisionRequestInitializer(
-            CLOUD_VISION_API_KEY
-        ) {
-            /**
-             * We override this so we can inject important identifying fields into the HTTP
-             * headers. This enables use of a restricted cloud platform API key.
-             */
-            @Throws(IOException::class)
-            override fun initializeVisionRequest(visionRequest: VisionRequest<*>) {
-                super.initializeVisionRequest(visionRequest)
-                val packageName = packageName
-                visionRequest.requestHeaders[ANDROID_PACKAGE_HEADER] =
-                    packageName
-                val sig: String = PackageManagerUtils.getSignature(packageManager, packageName)
-                visionRequest.requestHeaders[ANDROID_CERT_HEADER] = sig
+        val requestInitializer: VisionRequestInitializer =
+            object : VisionRequestInitializer(CLOUD_VISION_API_KEY) {
+                /**
+                 * We override this so we can inject important identifying fields into the HTTP
+                 * headers. This enables use of a restricted cloud platform API key.
+                 */
+                @Throws(IOException::class)
+                override fun initializeVisionRequest(visionRequest: VisionRequest<*>) {
+                    super.initializeVisionRequest(visionRequest)
+                    val packageName = packageName
+                    visionRequest.requestHeaders[ANDROID_PACKAGE_HEADER] = packageName
+                    val sig: String = PackageManagerUtils.getSignature(packageManager, packageName)
+                    visionRequest.requestHeaders[ANDROID_CERT_HEADER] = sig
+                }
             }
-        }
         val builder = Vision.Builder(httpTransport, jsonFactory, null)
         builder.setVisionRequestInitializer(requestInitializer)
         val vision = builder.build()
@@ -307,30 +316,17 @@ class VisionActivity : AppCompatActivity() {
         return Bitmap.createScaledBitmap(bitmap, resizedWidth, resizedHeight, false)
     }
 
-    companion object {
-        private const val CLOUD_VISION_API_KEY = BuildConfig.API_KEY
-        const val FILE_NAME = "temp.jpg"
-        private const val ANDROID_CERT_HEADER = "X-Android-Cert"
-        private const val ANDROID_PACKAGE_HEADER = "X-Android-Package"
-        private const val MAX_LABEL_RESULTS = 10
-        private const val MAX_DIMENSION = 1200
-        private val TAG = MainActivity::class.java.simpleName
-        private const val GALLERY_PERMISSIONS_REQUEST = 0
-        private const val GALLERY_IMAGE_REQUEST = 1
-        const val CAMERA_PERMISSIONS_REQUEST = 2
-        const val CAMERA_IMAGE_REQUEST = 3
-        private fun convertResponseToString(response: BatchAnnotateImagesResponse): String {
-            val message = StringBuilder("I found these things:\n\n")
-            val text = response.responses[0].textAnnotations
-            if (text != null) {
-                for (label in text) {
-                    message.append(String.format(Locale.US, "%s", label.description))
-                    message.append("\n")
-                }
-            } else {
-                message.append("nothing")
+    private fun convertResponseToString(response: BatchAnnotateImagesResponse): String? {
+        val message = StringBuilder("I found these things:\n\n")
+        val text = response.responses[0].textAnnotations
+        if (text != null) {
+            for (label in text) {
+                message.append(String.format(Locale.US, "%s", label.description))
+                message.append("\n")
             }
-            return message.toString()
+        } else {
+            message.append("nothing")
         }
+        return message.toString()
     }
 }
