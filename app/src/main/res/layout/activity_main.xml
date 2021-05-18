@@ -6,11 +6,22 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="124dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <ImageView
         android:id="@+id/showImageView"
         android:layout_width="match_parent"
-        android:layout_height="435dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="36dp"
+        android:layout_marginBottom="96dp"
+        app:layout_constraintBottom_toTopOf="@+id/LoadExif"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -21,12 +32,38 @@
         android:id="@+id/openGallery_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:onClick="loadImagefromGallery"
         android:text="openGalley"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/showImageView"
-        android:onClick="loadImagefromGallery"/>
+        app:layout_constraintTop_toBottomOf="@+id/showImageView" />
 
+    <Switch
+        android:id="@+id/LoadExif"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="91dp"
+        android:layout_marginLeft="91dp"
+        android:layout_marginEnd="151dp"
+        android:layout_marginRight="151dp"
+        android:layout_marginBottom="227dp"
+        android:text="Exif"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/LoadVision"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/showImageView" />
+
+    <Switch
+        android:id="@+id/LoadVision"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="96dp"
+        android:layout_marginRight="96dp"
+        android:text="OCR"
+        app:layout_constraintBottom_toBottomOf="@+id/LoadExif"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/LoadExif"
+        app:layout_constraintTop_toTopOf="@+id/LoadExif" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
