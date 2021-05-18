@@ -19,7 +19,24 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        val ExifSW = findViewById<Switch>(R.id.LoadExif)
+        val VisionSW = findViewById<Switch>(R.id.LoadVision)
+        ExifSW.setOnCheckedChangeListener(){ buttonView, isChecked ->
+            if(isChecked == true) {
+                ExifSW.isChecked = false
+            } else{
+                ExifSW.isChecked = true
+            }
+        }
+        VisionSW.setOnCheckedChangeListener(){ buttonView, isChecked ->
+            if(isChecked == true) {
+                VisionSW.isChecked = false
+            } else{
+                VisionSW.isChecked = true
+            }
+        }
+        val textview : TextView = findViewById(R.id.textview)
+        textview.setText("$ExifSW | $VisionSW")
 
     }
 
@@ -34,10 +51,7 @@ class MainActivity : AppCompatActivity() {
     //버전분기 필요함
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        val ExifSW = findViewById<Switch>(R.id.LoadExif)
-        val VisionSW = findViewById<Switch>(R.id.LoadVision)
-        val textview : TextView = findViewById(R.id.textview)
-        textview.setText("$ExifSW | $VisionSW")
+
         val intent = Intent(applicationContext, ExifActivity::class.java)
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && null != data) {
             try{
