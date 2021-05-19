@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
+import android.widget.CompoundButton
 import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -19,27 +20,33 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val ExifSW = findViewById<Switch>(R.id.LoadExif)
-        val VisionSW = findViewById<Switch>(R.id.LoadVision)
-        ExifSW.setOnCheckedChangeListener(){ buttonView, isChecked ->
-            if(isChecked == true) {
-                ExifSW.isChecked = false
-            } else{
-                ExifSW.isChecked = true
-            }
-        }
-        VisionSW.setOnCheckedChangeListener(){ buttonView, isChecked ->
-            if(isChecked == true) {
-                VisionSW.isChecked = false
-            } else{
-                VisionSW.isChecked = true
-            }
-        }
+        val sw1 = findViewById<Switch>(R.id.LoadExif)
+        val sw2 = findViewById<Switch>(R.id.LoadVision)
         val textview : TextView = findViewById(R.id.textview)
-        textview.setText("$ExifSW | $VisionSW")
+
+        sw1.setOnCheckedChangeListener { buttonView, isChecked ->
+            sw1.toggle()
+            textview.text = "select sw1"
+        }
+        sw2.setOnCheckedChangeListener { buttonView, isChecked ->
+            if(sw2.isChecked == true){
+                sw2.toggle()
+                sw2.isChecked = false
+                textview.text = "sw2 true to false"
+            }
+            else{
+                sw2.toggle()
+                sw2.isChecked = true
+                textview.text = "sw2 false to true"
+            }
+        }
 
     }
-
+    inner class checkboxListener : CompoundButton.OnCheckedChangeListener{
+        override fun onCheckedChanged(p0: CompoundButton?, p1: Boolean) {
+            TODO("Not yet implemented")
+        }
+    }
 
     fun loadImagefromGallery(v: View) {
         val intent = Intent(Intent.ACTION_PICK)
