@@ -2,6 +2,7 @@ package com.example.capstone2021
 
 //import com.google.api.client.extensions.android.http.AndroidHttp 사용불가
 import android.Manifest
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -15,6 +16,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.motion.utils.Oscillator.TAG
+import androidx.constraintlayout.motion.widget.MotionScene.TAG
+import androidx.constraintlayout.widget.ConstraintLayoutStates.TAG
+import androidx.constraintlayout.widget.Constraints.TAG
+import androidx.constraintlayout.widget.StateSet.TAG
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpTransport
@@ -151,7 +157,8 @@ class MainActivity : AppCompatActivity() {
                     super.initializeVisionRequest(visionRequest)
                     val packageName = packageName
                     visionRequest.requestHeaders[ANDROID_PACKAGE_HEADER] = packageName
-                    val sig: String = PackageManagerUtils.getSignature(packageManager, packageName)
+//                  getSignature의 리턴 값을 찾기위해 ?추가
+                    val sig: String? = PackageManagerUtils.getSignature(packageManager, packageName)
                     visionRequest.requestHeaders[ANDROID_CERT_HEADER] = sig
                 }
             }
@@ -196,23 +203,23 @@ class MainActivity : AppCompatActivity() {
         return annotateRequest
     }
 
-    private class LableDetectionTask internal constructor(
+    abstract class LableDetectionTask internal constructor(
         activity: MainActivity,
         annotate: Vision.Images.Annotate
     ) :
         AsyncTask<Any?, Void?, String>() {
-        private val mActivityWeakReference: WeakReference<MainActivity>
-        private val mRequest: Vision.Images.Annotate
-        protected override fun doInBackground(vararg params: Any): String {
+        private val mActivityWeakReference: WeakReference<MainActivity> = WeakReference(activity)
+        private val mRequest: Vision.Images.Annotate = annotate
+        protected fun doInBackground(vararg params: Any): String {
             try {
-                Log.d(TAG, "created Cloud Vision request object, sending request")
+                Log.d("MainActivity", "created Cloud Vision request object, sending request")
                 val response = mRequest.execute()
-                return convertResponseToString(response)
+                return MainActivity.convertResponseToString(response)
             } catch (e: GoogleJsonResponseException) {
-                Log.d(TAG, "failed to make API request because " + e.content)
+                Log.d("MainActivity", "failed to make API request because " + e.content)
             } catch (e: IOException) {
                 Log.d(
-                    TAG, "failed to make API request because of other IOException " +
+                    "MainActivity", "failed to make API request because of other IOException " +
                             e.message
                 )
             }
@@ -227,15 +234,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        init {
-            mActivityWeakReference = WeakReference(activity)
-            mRequest = annotate
-        }
     }
-
     private fun callCloudVision(bitmap: Bitmap) {
         // Switch text to loading
-        mImageDetails.setText(R.string.loading_message)
+        mImageDetails?.setText(R.string.loading_message)
 
         // Do the real work in an async task, because we need to use the network anyway
         try {
@@ -270,7 +272,7 @@ class MainActivity : AppCompatActivity() {
         return Bitmap.createScaledBitmap(bitmap, resizedWidth, resizedHeight, false)
     }
 
-    private fun convertResponseToString(response: BatchAnnotateImagesResponse): String? {
+     fun convertResponseToString(response: BatchAnnotateImagesResponse): String? {
         val message = StringBuilder("I found these things:\n\n")
         val text = response.responses[0].textAnnotations
         if (text != null) {
