@@ -22,8 +22,8 @@ object PackageManagerUtils {
      */
     fun getSignature(@NonNull pm: PackageManager, @NonNull packageName: String?): String? {
         return try {
-            val packageInfo = pm.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
-            if (packageInfo == null || packageInfo.signatures == null || packageInfo.signatures.size == 0 || packageInfo.signatures[0] == null
+            val packageInfo = pm.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+            if (packageInfo.signatures == null || packageInfo.signatures.size == 0 || packageInfo.signatures[0] == null
             ) {
                 null
             } else signatureDigest(packageInfo.signatures[0])

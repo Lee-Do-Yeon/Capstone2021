@@ -1,31 +1,24 @@
 package com.example.capstone2021
 
+//import com.google.api.client.extensions.android.http.AndroidHttp 사용불가
 import android.Manifest
 import android.content.Intent
-import android.content.res.AssetManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.support.design.widget.FloatingActionButton
-import androidx.core.content.FileProvider
-import android.support.v7.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
-import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import android.widget.Toolbar
-import androidx.annotation.NonNull
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.FileProvider
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.api.client.http.HttpTransport
+import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.vision.v1.Vision
@@ -39,7 +32,7 @@ import java.lang.ref.WeakReference
 import java.util.*
 
 
-public class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
 
     private val PICK_IMAGE_REQUEST = 1
     private val CLOUD_VISION_API_KEY = BuildConfig.API_KEY
@@ -62,7 +55,7 @@ public class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        val toolbar: androidx.appcompat.widget.Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         val fab: FloatingActionButton = findViewById(R.id.fab)
         fab.setOnClickListener { view ->
@@ -106,22 +99,22 @@ public class MainActivity : AppCompatActivity() {
             uploadImage(data.data)
         }
     }
-    fun onRequestPermissionsResult(
-        requestCode: Int, @NonNull permissions: Array<String?>?, @NonNull grantResults: IntArray?
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions!!, grantResults!!)
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
                     GALLERY_PERMISSIONS_REQUEST -> if (PermissionUtils.permissionGranted(
                     requestCode,
                     GALLERY_PERMISSIONS_REQUEST,
                     grantResults
                 )
-            ) {
+            )
                 startGalleryChooser()
             }
         }
-    }
-
     //start vision API
     fun uploadImage(uri: Uri?) {
         if (uri != null) {
@@ -145,7 +138,7 @@ public class MainActivity : AppCompatActivity() {
 
     @Throws(IOException::class)
     private fun prepareAnnotationRequest(bitmap: Bitmap): Vision.Images.Annotate {
-        val httpTransport: HttpTransport = AndroidHttp.newCompatibleTransport()
+        val httpTransport: HttpTransport = NetHttpTransport()
         val jsonFactory: JsonFactory = GsonFactory.getDefaultInstance()
         val requestInitializer: VisionRequestInitializer =
             object : VisionRequestInitializer(CLOUD_VISION_API_KEY) {
@@ -290,6 +283,8 @@ public class MainActivity : AppCompatActivity() {
         }
         return message.toString()
     }
+}
+
 //
 //    fun loadImagefromGallery(v: View) {
 //        val intent = Intent(Intent.ACTION_PICK)
@@ -317,5 +312,4 @@ public class MainActivity : AppCompatActivity() {
 //
 //    }
 
-}
 

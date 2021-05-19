@@ -25,12 +25,12 @@ import java.util.*
 
 object PermissionUtils {
     fun requestPermission(
-        activity: Activity?, requestCode: Int, vararg permissions: String
-    ): Boolean {
+        activity: Activity?, requestCode: Int, vararg permissions: String): Boolean
+    {
         var granted = true
         val permissionsNeeded = ArrayList<String>()
         for (s in permissions) {
-            val permissionCheck: Int = ContextCompat.checkSelfPermission(activity, s)
+            val permissionCheck: Int = ContextCompat.checkSelfPermission(activity!!, s)
             val hasPermission = permissionCheck == PackageManager.PERMISSION_GRANTED
             granted = granted and hasPermission
             if (!hasPermission) {
@@ -40,7 +40,8 @@ object PermissionUtils {
         return if (granted) {
             true
         } else {
-            ActivityCompat.requestPermissions(activity,
+            ActivityCompat.requestPermissions(
+                activity!!,
                 permissionsNeeded.toTypedArray(),
                 requestCode
             )
@@ -51,6 +52,6 @@ object PermissionUtils {
     fun permissionGranted(
         requestCode: Int, permissionCode: Int, grantResults: IntArray
     ): Boolean {
-        return requestCode == permissionCode && grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
+        return requestCode == permissionCode && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
     }
 }
