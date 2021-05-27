@@ -16,6 +16,7 @@ android {
         versionCode 1
         versionName "1.0"
         //sdk28로 인한 httpclient 추가
+        multiDexEnabled true
         useLibrary 'org.apache.http.legacy'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -45,11 +46,12 @@ android {
     }
 }
 dependencies {
+    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'com.android.support:multidex:1.0.3'
 
     //vision ai를 위해 추가.
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     testImplementation 'junit:junit:4.12'
-    implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'com.google.apis:google-api-services-vision:v1-rev369-1.23.0'
     implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
