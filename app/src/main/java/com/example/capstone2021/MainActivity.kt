@@ -2,7 +2,12 @@ package com.example.capstone2021
 
 //import com.google.api.client.extensions.android.http.AndroidHttp 사용불가
 import android.Manifest
-import android.content.ContentValues.TAG
+//import androidx.constraintlayout.motion.utils.Oscillator.TAG
+//import androidx.constraintlayout.motion.widget.MotionScene.TAG
+//import androidx.constraintlayout.widget.ConstraintLayoutStates.TAG
+//import androidx.constraintlayout.widget.Constraints.TAG
+//import androidx.constraintlayout.widget.StateSet.TAG
+//import android.content.ContentValues.TAG
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -16,11 +21,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.motion.utils.Oscillator.TAG
-import androidx.constraintlayout.motion.widget.MotionScene.TAG
-import androidx.constraintlayout.widget.ConstraintLayoutStates.TAG
-import androidx.constraintlayout.widget.Constraints.TAG
-import androidx.constraintlayout.widget.StateSet.TAG
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpTransport
@@ -202,6 +203,19 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "created Cloud Vision request object, sending request")
         return annotateRequest
     }
+    fun convertResponseToString(response: BatchAnnotateImagesResponse): String? {
+        val message = StringBuilder("I found these things:\n\n")
+        val text = response.responses[0].textAnnotations
+        if (text != null) {
+            for (label in text) {
+                message.append(String.format(Locale.US, "%s", label.description))
+                message.append("\n")
+            }
+        } else {
+            message.append("nothing")
+        }
+        return message.toString()
+    }
 
     abstract class LableDetectionTask internal constructor(
         activity: MainActivity,
@@ -242,6 +256,7 @@ class MainActivity : AppCompatActivity() {
         // Do the real work in an async task, because we need to use the network anyway
         try {
             val labelDetectionTask: AsyncTask<Any, Void, String> =
+
                 LableDetectionTask(this, prepareAnnotationRequest(bitmap))
             labelDetectionTask.execute()
         } catch (e: IOException) {
@@ -272,19 +287,7 @@ class MainActivity : AppCompatActivity() {
         return Bitmap.createScaledBitmap(bitmap, resizedWidth, resizedHeight, false)
     }
 
-     fun convertResponseToString(response: BatchAnnotateImagesResponse): String? {
-        val message = StringBuilder("I found these things:\n\n")
-        val text = response.responses[0].textAnnotations
-        if (text != null) {
-            for (label in text) {
-                message.append(String.format(Locale.US, "%s", label.description))
-                message.append("\n")
-            }
-        } else {
-            message.append("nothing")
-        }
-        return message.toString()
-    }
+
 }
 
 //
