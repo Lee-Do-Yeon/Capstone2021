@@ -22,19 +22,18 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -51,12 +50,13 @@ import com.google.api.services.vision.v1.model.Feature;
 import com.google.api.services.vision.v1.model.Image;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import static android.content.Intent.ACTION_PICK;
 
 public class MainActivity extends AppCompatActivity {
     private static final String CLOUD_VISION_API_KEY = BuildConfig.API_KEY;
@@ -65,12 +65,20 @@ public class MainActivity extends AppCompatActivity {
     private static final String ANDROID_PACKAGE_HEADER = "X-Android-Package";
     private static final int MAX_LABEL_RESULTS = 10;
     private static final int MAX_DIMENSION = 1200;
-
+    //EXIF 변수
+    private static final int PICK_IMAGE_REQUEST = 2;
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int GALLERY_PERMISSIONS_REQUEST = 0;
     private static final int GALLERY_IMAGE_REQUEST = 1;
     public static final int CAMERA_PERMISSIONS_REQUEST = 2;
     public static final int CAMERA_IMAGE_REQUEST = 3;
+
+    public static final int SELECT_NULL = 0;
+    public static final int SELECT_EXIF = 1;
+    public static final int SELECT_OCR = 2;
+    public static final int SELECT_EXIF_OCR = 3;
+
+    int select = SELECT_NULL;
 
     private TextView mImageDetails;
     private ImageView mMainImage;
@@ -83,21 +91,49 @@ public class MainActivity extends AppCompatActivity {
 //        Toolbar toolbar = findViewByI
 //        d(R.id.toolbar);
 //        setSupportActionBar(toolbar);
+        this.SetButton();
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-            builder
-                    .setMessage(R.string.dialog_select_prompt)
-                    .setPositiveButton(R.string.dialog_select_OCR, (dialog, which) -> startGalleryChooser())
-                    .setNegativeButton(R.string.dialog_select_Exif, (dialog, which) -> startCamera());
-            builder.create().show();
-        });
+//
+//        FloatingActionButton fab = findViewById(R.id.fab);
+//        fab.setOnClickListener(view -> {
+//            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+//            builder
+//                    .setMessage(R.string.dialog_select_prompt)
+//                    .setPositiveButton(R.string.dialog_select_OCR, (dialog, which) -> startGalleryChooser())
+//                    .setNegativeButton(R.string.dialog_select_Exif, (dialog, which) -> startCamera());
+//            builder.create().show();
+//        });
 
         mImageDetails = findViewById(R.id.image_details);
         mMainImage = findViewById(R.id.main_image);
     }
-
+    public void SetButton() {
+        Button btn = findViewById(R.id.button);
+        btn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view)
+            {
+                CheckBox checkBox1 = (CheckBox) findViewById(R.id.checkBox1) ;
+                CheckBox checkBox2 = (CheckBox) findViewById(R.id.checkBox2) ;
+                if (checkBox1.isChecked() && checkBox2.isChecked()) {
+                    select = SELECT_EXIF_OCR;
+                    Log.d(TAG, "EXIF AND OCR");
+                } else if(checkBox1.isChecked()) {
+                    select = SELECT_EXIF;
+                    Log.d(TAG, "EXIF");
+                        Intent intent = new Intent(ACTION_PICK);
+                        intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
+                        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+                } else if(checkBox2.isChecked()){
+                    select = SELECT_OCR;
+                    Log.d(TAG, "OCR");
+                    startGalleryChooser();
+                } else{
+                    Log.d(TAG, "NOTHING");
+                }
+            }
+        });
+    }
     public void startGalleryChooser() {
         if (PermissionUtils.requestPermission(this, GALLERY_PERMISSIONS_REQUEST, Manifest.permission.READ_EXTERNAL_STORAGE)) {
             Intent intent = new Intent();
@@ -107,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
                     GALLERY_IMAGE_REQUEST);
         }
     }
+
 //
 //    public void startCamera() {
 //        val intent = Intent(applicationContext, ExifActivity::class.java)
@@ -124,21 +161,38 @@ public class MainActivity extends AppCompatActivity {
 //
 //    }
 
-    public File getCameraFile() {
-        File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        return new File(dir, FILE_NAME);
-    }
+////
+////    //버전분기 필요함
+////    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+////        super.onActivityResult(requestCode, resultCode, data)
+////
+////
+////        if () {
+////
+////        } else {
+////            Log.d("Activity Result", "something wrong")
+////        }
+////
+////    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == GALLERY_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
-            uploadImage(data.getData());
-        } else if (requestCode == CAMERA_IMAGE_REQUEST && resultCode == RESULT_OK) {
-            Uri photoUri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", getCameraFile());
-            uploadImage(photoUri);
-        }
+            if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+                Log.d(TAG, "start EXIF");
+                Intent intent = new Intent(getApplicationContext(), ExifActivity.class);
+                try{
+                    Uri uri= data.getData();
+                    intent.putExtra("uri", uri.toString());
+                    startActivity(intent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }else if (requestCode == GALLERY_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+                Log.d(TAG, "start OCR");
+                uploadImage(data.getData());
+            }
     }
 
     @Override
@@ -148,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case CAMERA_PERMISSIONS_REQUEST:
                 if (PermissionUtils.permissionGranted(requestCode, CAMERA_PERMISSIONS_REQUEST, grantResults)) {
-                    startCamera();
+//                    startCamera();
                 }
                 break;
             case GALLERY_PERMISSIONS_REQUEST:
@@ -631,30 +685,6 @@ public class MainActivity extends AppCompatActivity {
 //}
 ////
 ////
-////    fun loadImagefromGallery(v: View) {
-////        val intent = Intent(Intent.ACTION_PICK)
-////        intent.type = MediaStore.Images.Media.CONTENT_TYPE
-////        startActivityForResult(intent, PICK_IMAGE_REQUEST)
-////
-////    }
-////
-////    //버전분기 필요함
-////    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-////        super.onActivityResult(requestCode, resultCode, data)
-////
-////        val intent = Intent(applicationContext, ExifActivity::class.java)
-////        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && null != data) {
-////            try{
-////                val uri: Uri? = data.data
-////                intent.putExtra("uri", uri.toString())
-////                startActivity(intent)
-////            } catch (e: Exception) {
-////                e.printStackTrace()
-////            }
-////        } else {
-////            Log.d("Activity Result", "something wrong")
-////        }
-////
-////    }
+
 //
 //
