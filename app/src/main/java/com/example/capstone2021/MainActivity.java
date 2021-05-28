@@ -72,8 +72,6 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int GALLERY_PERMISSIONS_REQUEST = 0;
-    public static final int CAMERA_PERMISSIONS_REQUEST = 2;
-    public static final int CAMERA_IMAGE_REQUEST = 3;
 
     public static final int SELECT_NULL = 0;
     public static final int SELECT_EXIF = 1;
@@ -90,16 +88,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        Toolbar toolbar = findViewByI
-//        d(R.id.toolbar);
-//        setSupportActionBar(toolbar);
         this.SetButton();
 
         mImageDetails = findViewById(R.id.image_details);
         mMainImage = findViewById(R.id.main_image);
-
-
     }
+
     public void SetButton() {
         Button btn = findViewById(R.id.button);
         btn.setOnClickListener(new View.OnClickListener(){
@@ -352,14 +346,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             message.append("nothing");
         }
-
-//        String pattern = "^[0-9]*$"; //숫자만
-//
-//        boolean regex = Pattern.matches(pattern, message.toString());
-//        if(regex)
-//            message.replace("FIND");
-//        else
-//            message = ("NOT FIND")
         return message.toString();
     }
 }

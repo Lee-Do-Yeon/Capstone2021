@@ -52,11 +52,17 @@ class ExifActivity : AppCompatActivity() {
 //        val textview : TextView = findViewById(R.id.textview)
 //        textview.setText("$lat | $lng")
         //05.28 데이터 전송하기
-        val data = lat + lng
-        val intent = Intent(applicationContext, RecieverActivity::class.java)
-        intent.putExtra("data", data)
-        startActivity(intent)
-
+        if(lat == null && lng == null){
+            Log.d("test", "$lat, $lng")
+            val intent = Intent(applicationContext, RecieverActivity::class.java)
+//            intent.putExtra("data", null)
+            startActivity(intent)
+        }else {
+            val data = lat + lng
+            val intent = Intent(applicationContext, RecieverActivity::class.java)
+            intent.putExtra("data", data)
+            startActivity(intent)
+        }
     }
 
     fun getPathFromUri(uri: Uri?): String {
