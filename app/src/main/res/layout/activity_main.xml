@@ -11,7 +11,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay"
-        app:layout_constraintBottom_toTopOf="@+id/toolbar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -30,39 +29,13 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="62dp"
-        android:layout_height="58dp"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:layout_marginEnd="176dp"
-        android:layout_marginRight="176dp"
-        android:layout_marginBottom="16dp"
-        android:src="@android:drawable/ic_menu_gallery"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
-
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="603dp"
-        android:background="?attr/colorPrimary"
-        app:layout_constraintBottom_toTopOf="@+id/fab"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout"
-        app:popupTheme="@style/AppTheme.PopupOverlay" />
-
     <CheckBox
         android:id="@+id/checkBox1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="92dp"
-        android:layout_marginLeft="92dp"
-        android:layout_marginBottom="26dp"
+        android:layout_marginStart="120dp"
+        android:layout_marginLeft="120dp"
+        android:layout_marginBottom="24dp"
         android:text="Exif"
         app:layout_constraintBottom_toTopOf="@+id/button"
         app:layout_constraintStart_toStartOf="parent" />
@@ -71,14 +44,11 @@
         android:id="@+id/checkBox2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="123dp"
-        android:layout_marginLeft="123dp"
-        android:layout_marginEnd="122dp"
-        android:layout_marginRight="122dp"
-        android:layout_marginBottom="26dp"
+        android:layout_marginStart="140dp"
+        android:layout_marginLeft="140dp"
+        android:layout_marginBottom="24dp"
         android:text="OCR"
         app:layout_constraintBottom_toTopOf="@+id/button"
-        app:layout_constraintEnd_toEndOf="@+id/fab"
         app:layout_constraintStart_toStartOf="@+id/checkBox1" />
 
     <Button
@@ -89,10 +59,11 @@
         android:layout_marginLeft="47dp"
         android:layout_marginEnd="47dp"
         android:layout_marginRight="47dp"
-        android:layout_marginBottom="17dp"
+        android:layout_marginBottom="16dp"
         android:text="Scan"
         app:layout_constraintBottom_toBottomOf="@+id/include"
         app:layout_constraintEnd_toEndOf="@+id/checkBox2"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/checkBox1" />
 
 

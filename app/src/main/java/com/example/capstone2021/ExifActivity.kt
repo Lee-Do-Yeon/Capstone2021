@@ -1,22 +1,15 @@
 package com.example.capstone2021
 
-import androidx.exifinterface.media.ExifInterface //여기 수정
+import android.content.Intent
 import android.net.Uri
 import android.net.Uri.parse
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.webkit.MimeTypeMap
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import com.example.capstone2021.R
-import java.io.File
-import java.io.IOException
+import androidx.exifinterface.media.ExifInterface
 
 
 class ExifActivity : AppCompatActivity() {
@@ -56,8 +49,14 @@ class ExifActivity : AppCompatActivity() {
         val lng = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE) //경도
         Log.d("test_before_delete", "$lat, $lng")
 
-        val textview : TextView = findViewById(R.id.textview)
-        textview.setText("$lat | $lng")
+//        val textview : TextView = findViewById(R.id.textview)
+//        textview.setText("$lat | $lng")
+        //05.28 데이터 전송하기
+        val data = lat + lng
+        val intent = Intent(applicationContext, RecieverActivity::class.java)
+        intent.putExtra("data", data)
+        startActivity(intent)
+
     }
 
     fun getPathFromUri(uri: Uri?): String {

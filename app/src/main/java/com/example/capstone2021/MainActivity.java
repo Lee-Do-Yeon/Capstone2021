@@ -66,10 +66,12 @@ public class MainActivity extends AppCompatActivity {
     private static final int MAX_LABEL_RESULTS = 10;
     private static final int MAX_DIMENSION = 1200;
     //EXIF 변수
-    private static final int PICK_IMAGE_REQUEST = 2;
+    private static final int OCR_IMAGE_REQUEST = 1;
+    private static final int EXIF_IMAGE_REQUEST = 2;
+    private static final int OCR_EXIF_IMAGE_REQUEST = 3;
+
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int GALLERY_PERMISSIONS_REQUEST = 0;
-    private static final int GALLERY_IMAGE_REQUEST = 1;
     public static final int CAMERA_PERMISSIONS_REQUEST = 2;
     public static final int CAMERA_IMAGE_REQUEST = 3;
 
@@ -77,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int SELECT_EXIF = 1;
     public static final int SELECT_OCR = 2;
     public static final int SELECT_EXIF_OCR = 3;
-
+    String data;
     int select = SELECT_NULL;
 
     private TextView mImageDetails;
@@ -93,19 +95,10 @@ public class MainActivity extends AppCompatActivity {
 //        setSupportActionBar(toolbar);
         this.SetButton();
 
-//
-//        FloatingActionButton fab = findViewById(R.id.fab);
-//        fab.setOnClickListener(view -> {
-//            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-//            builder
-//                    .setMessage(R.string.dialog_select_prompt)
-//                    .setPositiveButton(R.string.dialog_select_OCR, (dialog, which) -> startGalleryChooser())
-//                    .setNegativeButton(R.string.dialog_select_Exif, (dialog, which) -> startCamera());
-//            builder.create().show();
-//        });
-
         mImageDetails = findViewById(R.id.image_details);
         mMainImage = findViewById(R.id.main_image);
+
+
     }
     public void SetButton() {
         Button btn = findViewById(R.id.button);
@@ -118,12 +111,16 @@ public class MainActivity extends AppCompatActivity {
                 if (checkBox1.isChecked() && checkBox2.isChecked()) {
                     select = SELECT_EXIF_OCR;
                     Log.d(TAG, "EXIF AND OCR");
+//                    Intent intent = new Intent(ACTION_PICK);
+//                    intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
+//                    startActivityForResult(intent, OCR_EXIF_IMAGE_REQUEST);
+
                 } else if(checkBox1.isChecked()) {
                     select = SELECT_EXIF;
                     Log.d(TAG, "EXIF");
-                        Intent intent = new Intent(ACTION_PICK);
-                        intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
-                        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+                    Intent intent = new Intent(ACTION_PICK);
+                    intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
+                    startActivityForResult(intent, EXIF_IMAGE_REQUEST);
                 } else if(checkBox2.isChecked()){
                     select = SELECT_OCR;
                     Log.d(TAG, "OCR");
@@ -140,46 +137,16 @@ public class MainActivity extends AppCompatActivity {
             intent.setType("image/*");
             intent.setAction(Intent.ACTION_GET_CONTENT);
             startActivityForResult(Intent.createChooser(intent, "Select a photo"),
-                    GALLERY_IMAGE_REQUEST);
+                    OCR_IMAGE_REQUEST);
         }
     }
 
-//
-//    public void startCamera() {
-//        val intent = Intent(applicationContext, ExifActivity::class.java)
-//        if (requestCode ==    PICK_IMAGE_REQUEST && resultCode == RESULT_OK && null != data) {
-//            try{
-//                val uri: Uri? = data.data
-//                intent.putExtra("uri", uri.toString())
-//                startActivity(intent)
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
-//        } else {
-//            Log.d("Activity Result", "something wrong")
-//        }
-//
-//    }
-
-////
-////    //버전분기 필요함
-////    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-////        super.onActivityResult(requestCode, resultCode, data)
-////
-////
-////        if () {
-////
-////        } else {
-////            Log.d("Activity Result", "something wrong")
-////        }
-////
-////    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-            if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+            if (requestCode == EXIF_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
                 Log.d(TAG, "start EXIF");
                 Intent intent = new Intent(getApplicationContext(), ExifActivity.class);
                 try{
@@ -189,8 +156,11 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }else if (requestCode == GALLERY_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+            }else if (requestCode == OCR_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
                 Log.d(TAG, "start OCR");
+                uploadImage(data.getData());
+            }else if (requestCode == OCR_EXIF_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+                Log.d(TAG, "start OCR and EXIF");
                 uploadImage(data.getData());
             }
     }
@@ -200,11 +170,6 @@ public class MainActivity extends AppCompatActivity {
             int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
-            case CAMERA_PERMISSIONS_REQUEST:
-                if (PermissionUtils.permissionGranted(requestCode, CAMERA_PERMISSIONS_REQUEST, grantResults)) {
-//                    startCamera();
-                }
-                break;
             case GALLERY_PERMISSIONS_REQUEST:
                 if (PermissionUtils.permissionGranted(requestCode, GALLERY_PERMISSIONS_REQUEST, grantResults)) {
                     startGalleryChooser();
@@ -222,10 +187,8 @@ public class MainActivity extends AppCompatActivity {
                         scaleBitmapDown(
                                 MediaStore.Images.Media.getBitmap(getContentResolver(), uri),
                                 MAX_DIMENSION);
-
                 callCloudVision(bitmap);
                 mMainImage.setImageBitmap(bitmap);
-
             } catch (IOException e) {
                 Log.d(TAG, "Image picking failed because " + e.getMessage());
                 Toast.makeText(this, R.string.image_picker_error, Toast.LENGTH_LONG).show();
@@ -305,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
         return annotateRequest;
     }
 
-    private static class LableDetectionTask extends AsyncTask<Object, Void, String> {
+    private class LableDetectionTask extends AsyncTask<Object, Void, String> {
         private final WeakReference<MainActivity> mActivityWeakReference;
         private Vision.Images.Annotate mRequest;
 
@@ -319,7 +282,11 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Log.d(TAG, "created Cloud Vision request object, sending request");
                 BatchAnnotateImagesResponse response = mRequest.execute();
-                return convertResponseToString(response);
+                //05.28 데이터 전송하기
+                String data = convertResponseToString(response);
+                Intent intent = new Intent(getApplicationContext(), RecieverActivity.class);
+                intent.putExtra("data",data.toString());
+                startActivity(intent);
 
             } catch (GoogleJsonResponseException e) {
                 Log.d(TAG, "failed to make API request because " + e.getContent());
@@ -386,6 +353,13 @@ public class MainActivity extends AppCompatActivity {
             message.append("nothing");
         }
 
+//        String pattern = "^[0-9]*$"; //숫자만
+//
+//        boolean regex = Pattern.matches(pattern, message.toString());
+//        if(regex)
+//            message.replace("FIND");
+//        else
+//            message = ("NOT FIND")
         return message.toString();
     }
 }
