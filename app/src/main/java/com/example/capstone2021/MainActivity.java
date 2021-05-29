@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "EXIF");
                     Intent intent = new Intent(ACTION_PICK);
                     intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
+                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
                     startActivityForResult(intent, EXIF_IMAGE_REQUEST);
                 } else if(checkBox2.isChecked()){
                     select = SELECT_OCR;
@@ -127,11 +128,12 @@ public class MainActivity extends AppCompatActivity {
     }
     public void startGalleryChooser() {
         if (PermissionUtils.requestPermission(this, GALLERY_PERMISSIONS_REQUEST, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            Intent intent = new Intent();
-            intent.setType("image/*");
-            intent.setAction(Intent.ACTION_GET_CONTENT);
-            startActivityForResult(Intent.createChooser(intent, "Select a photo"),
-                    OCR_IMAGE_REQUEST);
+            Intent intent = new Intent(ACTION_PICK);
+            intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
+            //이미지 다중선택
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+//            intent.setAction(Intent.ACTION_GET_CONTENT);
+            startActivityForResult(intent,OCR_IMAGE_REQUEST);
         }
     }
 
@@ -146,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
                 try{
                     Uri uri= data.getData();
                     intent.putExtra("uri", uri.toString());
+                    intent.putExtra("img",data);
                     startActivity(intent);
                 } catch (Exception e) {
                     e.printStackTrace();

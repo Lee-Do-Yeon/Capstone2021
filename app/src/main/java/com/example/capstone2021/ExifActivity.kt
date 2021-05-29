@@ -19,10 +19,11 @@ class ExifActivity : AppCompatActivity() {
 
         var intent = getIntent()
         var uristr = intent.extras!!.getString("uri")
+        val byteArray = getIntent().getByteArrayExtra("img")
 
         if( uristr != null){
             val uri: Uri = parse(uristr)
-            this.loadExifFromImage(uri)
+            this.loadExifFromImage(uri,byteArray)
         }
         else{
             Log.d("uristr", "uristr is null")
@@ -37,7 +38,7 @@ class ExifActivity : AppCompatActivity() {
 
     }
 
-    fun loadExifFromImage(uri: Uri?) {
+    fun loadExifFromImage(uri: Uri?, byteArray: ByteArray?) {
         val imgView : ImageView = findViewById(R.id.showImageView)
         imgView.setImageURI(uri)
 
@@ -56,11 +57,13 @@ class ExifActivity : AppCompatActivity() {
             Log.d("test", "$lat, $lng")
             val intent = Intent(applicationContext, RecieverActivity::class.java)
 //            intent.putExtra("data", null)
+            intent.putExtra("image",byteArray)
             startActivity(intent)
         }else {
             val data = lat + lng
             val intent = Intent(applicationContext, RecieverActivity::class.java)
             intent.putExtra("data", data)
+            intent.putExtra("image",byteArray)
             startActivity(intent)
         }
     }
