@@ -6,6 +6,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.ArrayList;
+
 public class RecieverActivity extends AppCompatActivity {
 
     @Override
@@ -14,10 +16,13 @@ public class RecieverActivity extends AppCompatActivity {
         setContentView(R.layout.activity_reciever);
 
         Intent intent = getIntent();
-        String  myData = intent.getStringExtra("data");
+//        String  myData = intent.getStringExtra("list");
+        ArrayList<String> list = (ArrayList<String>)intent.getSerializableExtra("list");
 
         TextView textview = findViewById(R.id.textview);
-        textview.setText(myData);
+        for(int i = 0; i < list.size(); i++) {
+            textview.append(list.get(i));
+        }
         //05.29 이미지 불러오기
 //        ImageView imgView = findViewById(R.id.showImageView);
 //        byte[] byteArray = intent.getByteArrayExtra("image");

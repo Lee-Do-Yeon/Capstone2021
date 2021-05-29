@@ -17,6 +17,7 @@
 package com.example.capstone2021;
 
 import android.Manifest;
+import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -51,7 +52,9 @@ import com.google.api.services.vision.v1.model.Image;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.ref.WeakReference;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -70,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int EXIF_IMAGE_REQUEST = 2;
     private static final int OCR_EXIF_IMAGE_REQUEST = 3;
 
+
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int GALLERY_PERMISSIONS_REQUEST = 0;
 
@@ -77,11 +81,27 @@ public class MainActivity extends AppCompatActivity {
     public static final int SELECT_EXIF = 1;
     public static final int SELECT_OCR = 2;
     public static final int SELECT_EXIF_OCR = 3;
-    String data;
+    public String TEXT = null;
     int select = SELECT_NULL;
+
 
     private TextView mImageDetails;
     private ImageView mMainImage;
+
+    class DataBox implements Serializable{
+        private static final long serialVersionUID = -4865946674835353945L;
+        private String result; //직렬화 대상
+        private int num; //직렬화 대상
+        private URI uri;
+        DataBox() { //생성자는 직렬화 대상이 아니다.
+
+        }
+        DataBox(int num, String result,URI uri ) { //생성자는 직렬화 대상이 아니다.
+            this.num = num;
+            this.result = result;
+            this.uri = uri;
+        }
+    }
 
     //Main
     @Override
@@ -92,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
 
         mImageDetails = findViewById(R.id.image_details);
         mMainImage = findViewById(R.id.main_image);
+
     }
 
     public void SetButton() {
@@ -137,29 +158,41 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-            if (requestCode == EXIF_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
-                Log.d(TAG, "start EXIF");
-                Intent intent = new Intent(getApplicationContext(), ExifActivity.class);
-                try{
-                    Uri uri= data.getData();
-                    intent.putExtra("uri", uri.toString());
-                    intent.putExtra("img",data);
-                    startActivity(intent);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }else if (requestCode == OCR_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
-                Log.d(TAG, "start OCR");
-                uploadImage(data.getData());
-            }else if (requestCode == OCR_EXIF_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
-                Log.d(TAG, "start OCR and EXIF");
-                uploadImage(data.getData());
+        if (requestCode == EXIF_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+            Log.d(TAG, "start EXIF");
+            Intent intent = new Intent(getApplicationContext(), ExifActivity.class);
+            try{
+                Uri uri= data.getData();
+                intent.putExtra("uri", uri.toString());
+                intent.putExtra("img",data);
+                startActivity(intent);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        }else if (requestCode == OCR_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+            Log.d(TAG, "start OCR");
+//                uploadImage(data.getData());
+            Uri uri = data.getData();
+            final ArrayList<String> list = new ArrayList<>();
+            Intent intent = new Intent(getApplicationContext(), RecieverActivity.class);
+            ClipData clipdata = data.getClipData();
+            for(int i=0; i < clipdata.getItemCount(); i++){
+                uri = clipdata.getItemAt(i).getUri();
+                uploadImage(uri);
+                list.add(String.format("no.%d -> uri : %s\n", i , uri));
+//                Log.d(TAG, TEXT);
+            }
+            intent.putExtra("list",list);
+            startActivity(intent);
+//                mMainImage.setImageURI(data.getData());
+        }else if (requestCode == OCR_EXIF_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+            Log.d(TAG, "start OCR and EXIF");
+            uploadImage(data.getData());
+        }
     }
 
     @Override
@@ -265,6 +298,7 @@ public class MainActivity extends AppCompatActivity {
         return annotateRequest;
     }
 
+
     private class LableDetectionTask extends AsyncTask<Object, Void, String> {
         private final WeakReference<MainActivity> mActivityWeakReference;
         private Vision.Images.Annotate mRequest;
@@ -279,18 +313,15 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Log.d(TAG, "created Cloud Vision request object, sending request");
                 BatchAnnotateImagesResponse response = mRequest.execute();
-                //05.28 데이터 전송하기
-                String data = convertResponseToString(response);
-                Intent intent = new Intent(getApplicationContext(), RecieverActivity.class);
-                intent.putExtra("data",data.toString());
-                startActivity(intent);
-
+                TEXT = convertResponseToString(response);
+//                Log.d(TAG,TEXT);
             } catch (GoogleJsonResponseException e) {
                 Log.d(TAG, "failed to make API request because " + e.getContent());
             } catch (IOException e) {
                 Log.d(TAG, "failed to make API request because of other IOException " +
                         e.getMessage());
             }
+
             return "Cloud Vision API request failed. Check logs for details.";
         }
 
@@ -299,6 +330,7 @@ public class MainActivity extends AppCompatActivity {
             if (activity != null && !activity.isFinishing()) {
                 TextView imageDetail = activity.findViewById(R.id.image_details);
                 imageDetail.setText(result);
+
             }
         }
     }
@@ -351,6 +383,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return message.toString();
     }
+
 }
 
 
