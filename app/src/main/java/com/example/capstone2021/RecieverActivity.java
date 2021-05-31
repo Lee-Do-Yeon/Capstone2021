@@ -1,15 +1,17 @@
 package com.example.capstone2021;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
-
 public class RecieverActivity extends AppCompatActivity {
-
+    private static final String TAG = MainActivity.class.getSimpleName();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -18,11 +20,31 @@ public class RecieverActivity extends AppCompatActivity {
         Intent intent = getIntent();
 //        String  myData = intent.getStringExtra("list");
         ArrayList<String> list = (ArrayList<String>)intent.getSerializableExtra("list");
-
+        String regex = "";
         TextView textview = findViewById(R.id.textview);
+        ImageView imgview = findViewById(R.id.showImageView);
+        String text = list.get(0);
+        String target = "uri";
+        int target_num = text.indexOf(target);
+//        String result = text.substring(target_num,(text.substring(target_num).indexOf("no") + target_num));
+        String[] array = text.split("uri:");
+        text = array[0];
+        Uri uri = Uri.parse(text.);
+        Log.d(TAG, text);
+        imgview.setImageURI(uri.get);
         for(int i = 0; i < list.size(); i++) {
             textview.append(list.get(i));
+
         }
+//        // 3. 특정단어(부분)만 자르기
+//        str = "바나나 : 1000원, 사과 : 2000원, 배 : 3000원";
+//        String target = "사과";
+//        int target_num = str.indexOf(target); // target과 같은 value의 인덱스를 저장.
+//        String result = str.substring(target_num, (str.substring(target_num).indexOf(",") + target_num));
+//        // (target_num 부터 , target_num부터 끝까지 문자열 가운데 ","의 Index + target의 Index까지 출력)
+//        // 잘 모르겠다면 변수 단위 별로 출력문을 사용 추천. ex)target_num /
+//        // (str.substring(target_num).indexOf(",")+target_num)
+
         //05.29 이미지 불러오기
 //        ImageView imgView = findViewById(R.id.showImageView);
 //        byte[] byteArray = intent.getByteArrayExtra("image");

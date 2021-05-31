@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
             for(int i=0; i < clipdata.getItemCount(); i++){
                 uri = clipdata.getItemAt(i).getUri();
                 uploadImage(uri);
-                list.add(String.format("no.%d -> uri : %s\n", i , uri));
+                list.add(String.format("%s\n" , uri));
 //                Log.d(TAG, TEXT);
             }
             intent.putExtra("list",list);
