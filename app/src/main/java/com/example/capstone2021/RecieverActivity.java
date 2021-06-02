@@ -1,10 +1,7 @@
 package com.example.capstone2021;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,16 +19,15 @@ public class RecieverActivity extends AppCompatActivity {
         ArrayList<String> list = (ArrayList<String>)intent.getSerializableExtra("list");
         String regex = "";
         TextView textview = findViewById(R.id.textview);
-        ImageView imgview = findViewById(R.id.showImageView);
+//        ImageView imgview = findViewById(R.id.showImageView);
         String text = list.get(0);
-        String target = "uri";
-        int target_num = text.indexOf(target);
+//        String target = "uri";
+//        int target_num = text.indexOf(target);
 //        String result = text.substring(target_num,(text.substring(target_num).indexOf("no") + target_num));
-        String[] array = text.split("uri:");
-        text = array[0];
-        Uri uri = Uri.parse(text.);
-        Log.d(TAG, text);
-        imgview.setImageURI(uri.get);
+//        String[] array = text.split("uri:");
+//        text = array[0];
+//        Uri uri = Uri.parse(text.);
+
         for(int i = 0; i < list.size(); i++) {
             textview.append(list.get(i));
 

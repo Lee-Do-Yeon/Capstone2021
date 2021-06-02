@@ -58,6 +58,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static android.content.Intent.ACTION_PICK;
 
@@ -81,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int SELECT_EXIF = 1;
     public static final int SELECT_OCR = 2;
     public static final int SELECT_EXIF_OCR = 3;
-    public String TEXT = null;
+    public static String TEXT = "null";
     int select = SELECT_NULL;
 
 
@@ -175,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }else if (requestCode == OCR_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             Log.d(TAG, "start OCR");
-//                uploadImage(data.getData());
+            uploadImage(data.getData());
             Uri uri = data.getData();
             final ArrayList<String> list = new ArrayList<>();
             Intent intent = new Intent(getApplicationContext(), RecieverActivity.class);
@@ -183,11 +185,12 @@ public class MainActivity extends AppCompatActivity {
             for(int i=0; i < clipdata.getItemCount(); i++){
                 uri = clipdata.getItemAt(i).getUri();
                 uploadImage(uri);
-                list.add(String.format("%s\n" , uri));
-//                Log.d(TAG, TEXT);
+
+                list.add(String.format("no.%d -> uri : %s\n", i , TEXT));
             }
+            Log.d(TAG, "test : " + TEXT);
             intent.putExtra("list",list);
-            startActivity(intent);
+//            startActivity(intent);
 //                mMainImage.setImageURI(data.getData());
         }else if (requestCode == OCR_EXIF_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             Log.d(TAG, "start OCR and EXIF");
@@ -313,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Log.d(TAG, "created Cloud Vision request object, sending request");
                 BatchAnnotateImagesResponse response = mRequest.execute();
-                TEXT = convertResponseToString(response);
+                return convertResponseToString(response);
 //                Log.d(TAG,TEXT);
             } catch (GoogleJsonResponseException e) {
                 Log.d(TAG, "failed to make API request because " + e.getContent());
@@ -322,19 +325,44 @@ public class MainActivity extends AppCompatActivity {
                         e.getMessage());
             }
 
-            return "Cloud Vision API request failed. Check logs for details.";
+            return TEXT;
         }
 
         protected void onPostExecute(String result) {
             MainActivity activity = mActivityWeakReference.get();
             if (activity != null && !activity.isFinishing()) {
                 TextView imageDetail = activity.findViewById(R.id.image_details);
-                imageDetail.setText(result);
+//                imageDetail.setText(result);
+                resultOCR(result,imageDetail);
+//                Log.d(TAG,TEXT);
+//                TEXT = result;
 
             }
         }
     }
+    private void resultOCR(String requestOCR,TextView imageDetail) {
+        if (requestOCR != null) {
 
+            //주민 번호 탐지
+            String regex = "\\b(?:[0-9]{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[1,2][0-9]|3[0,1]))-[1-4][0-9]{6}\\b";
+            Matcher matcher = Pattern.compile(regex).matcher(requestOCR);
+            if (matcher.find())
+                imageDetail.setText("주민 번호 탐지 : "+ matcher.group());
+            //핸드폰 번호 탐지
+            regex = "\\b01(?:0|1|[6-9])-(?:\\d{3}|\\d{4})-\\d{4}\\b";
+            matcher = Pattern.compile(regex).matcher(requestOCR);
+            if (matcher.find())
+                imageDetail.setText("핸드폰 번호 탐지 : "+ matcher.group());
+
+            //이메일 탐지
+            regex = "\\b[a-zA-Z0-9]+@[a-zA-Z0-9]+.[a-zA-Z]+\\b";
+            matcher = Pattern.compile(regex).matcher(requestOCR);
+            if (matcher.find())
+                imageDetail.setText("이메일 탐지 : "+ matcher.group());
+
+        }else
+            imageDetail.setText("개인정보가 없습니다.");
+    }
     private void callCloudVision(final Bitmap bitmap) {
         // Switch text to loading
         mImageDetails.setText(R.string.loading_message);
@@ -370,7 +398,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private static String convertResponseToString(BatchAnnotateImagesResponse response) {
-        StringBuilder message = new StringBuilder("I found these things:\n\n");
+        StringBuilder message = new StringBuilder("");
 
         List<EntityAnnotation> text = response.getResponses().get(0).getTextAnnotations();
         if (text != null) {
