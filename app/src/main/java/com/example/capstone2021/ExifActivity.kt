@@ -1,5 +1,6 @@
 package com.example.capstone2021
 
+import android.content.Intent
 import android.net.Uri
 import android.net.Uri.parse
 import android.os.Bundle
@@ -52,7 +53,10 @@ class ExifActivity : AppCompatActivity() {
         Log.d("test_before_delete", "$lat, $lng")
 
         val textview : TextView = findViewById(R.id.textview)
-        textview.setText("$lat | $lng")
+        if(lat != null || lng != null) {
+            textview.setText("위치정보 탐지 : \n $lat | $lng")
+        }else
+            textview.setText("위치 정보가 없습니다.")
     }
 
     fun getPathFromUri(uri: Uri?): String {
@@ -71,13 +75,13 @@ class ExifActivity : AppCompatActivity() {
         exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, null)
         exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, null)
 
-//        exif.saveAttributes();
+//        exif.saveAttributes()
 
         val lat = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE) //위도
         val lng = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE) //경도
 
         val textview : TextView = findViewById(R.id.textview)
-        textview.setText("위치정보가 제거 되었습니다.")
+        textview.setText("제거된 위치정보 : $lat | $lng")
         Log.d("test_after_delete", "$lat | $lng")
     }
 

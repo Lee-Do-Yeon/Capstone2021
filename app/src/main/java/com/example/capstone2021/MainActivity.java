@@ -117,23 +117,15 @@ public class MainActivity extends AppCompatActivity {
                 if (checkBox1.isChecked() && checkBox2.isChecked()) {
                     select = SELECT_EXIF_OCR;
                     Log.d(TAG, "EXIF AND OCR");
-//                    Intent intent = new Intent(ACTION_PICK);
-//                    intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
-//                    startActivityForResult(intent, OCR_EXIF_IMAGE_REQUEST);
-
                 } else if(checkBox1.isChecked()) {
                     select = SELECT_EXIF;
                     Log.d(TAG, "EXIF");
                     Intent intent = new Intent(ACTION_PICK);
                     intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
-//                    intent.setAction(Intent.ACTION_GET_CONTENT);
-//                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+
                     startActivityForResult(intent, EXIF_IMAGE_REQUEST);
-
-
                 } else if(checkBox2.isChecked()){
                     select = SELECT_OCR;
-                    count_OCR =0;
                     Log.d(TAG, "OCR");
                     startGalleryChooser();
                 } else{
@@ -146,9 +138,6 @@ public class MainActivity extends AppCompatActivity {
         if (PermissionUtils.requestPermission(this, GALLERY_PERMISSIONS_REQUEST, Manifest.permission.READ_EXTERNAL_STORAGE)) {
             Intent intent = new Intent(ACTION_PICK);
             intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
-            //이미지 다중선택
-//            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-//            intent.setAction(Intent.ACTION_GET_CONTENT);
             startActivityForResult(intent,OCR_IMAGE_REQUEST);
         }
     }
@@ -163,25 +152,14 @@ public class MainActivity extends AppCompatActivity {
             try{
                 Uri uri= data.getData();
                 intent.putExtra("uri", uri.toString());
-//                intent.putExtra("img",data);
                 startActivity(intent);
 
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         }else if (requestCode == OCR_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             Log.d(TAG, "start OCR");
-//            uploadImage(data.getData());
-//            Uri uri = data.getData();
-//            Intent intent = new Intent(getApplicationContext(), RecieverActivity.class);
-//            ClipData clipdata = data.getClipData();
-//            for(int i=0; i < clipdata.getItemCount(); i++){
-//                Uri uri = clipdata.getItemAt(i).getUri();
                 uploadImage(data.getData());
-//            }
-//            startActivity(intent);
-//                mMainImage.setImageURI(data.getData());
         }else if (requestCode == OCR_EXIF_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             Log.d(TAG, "start OCR and EXIF");
             uploadImage(data.getData());
@@ -190,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(
-            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+            int requestCode,    @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case GALLERY_PERMISSIONS_REQUEST:
