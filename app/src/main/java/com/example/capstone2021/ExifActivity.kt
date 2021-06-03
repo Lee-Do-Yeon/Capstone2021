@@ -1,6 +1,5 @@
 package com.example.capstone2021
 
-import android.content.Intent
 import android.net.Uri
 import android.net.Uri.parse
 import android.os.Bundle
@@ -16,14 +15,16 @@ class ExifActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_exif)
+        supportActionBar!!.setIcon(R.drawable.banner)
+        supportActionBar!!.setDisplayUseLogoEnabled(true)
+        supportActionBar!!.setDisplayShowHomeEnabled(true)
 
         var intent = getIntent()
         var uristr = intent.extras!!.getString("uri")
-        val byteArray = getIntent().getByteArrayExtra("img")
 
         if( uristr != null){
             val uri: Uri = parse(uristr)
-            this.loadExifFromImage(uri,byteArray)
+            this.loadExifFromImage(uri)
         }
         else{
             Log.d("uristr", "uristr is null")
@@ -38,7 +39,7 @@ class ExifActivity : AppCompatActivity() {
 
     }
 
-    fun loadExifFromImage(uri: Uri?, byteArray: ByteArray?) {
+    fun loadExifFromImage(uri: Uri?) {
         val imgView : ImageView = findViewById(R.id.showImageView)
         imgView.setImageURI(uri)
 
@@ -50,22 +51,11 @@ class ExifActivity : AppCompatActivity() {
         val lng = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE) //경도
         Log.d("test_before_delete", "$lat, $lng")
 
-//        val textview : TextView = findViewById(R.id.textview)
-//        textview.setText("$lat | $lng")
-        //05.28 데이터 전송하기
-        if(lat == null && lng == null){
-            Log.d("test", "$lat, $lng")
-            val intent = Intent(applicationContext, RecieverActivity::class.java)
-//            intent.putExtra("data", null)
-            intent.putExtra("image",byteArray)
-            startActivity(intent)
-        }else {
-            val data = lat + lng
-            val intent = Intent(applicationContext, RecieverActivity::class.java)
-            intent.putExtra("data", data)
-            intent.putExtra("image",byteArray)
-            startActivity(intent)
-        }
+        val textview : TextView = findViewById(R.id.textview)
+        if(lat != null || lng != null) {
+            textview.setText("위치정보 탐지 : \n $lat | $lng")
+        }else
+            textview.setText("위치 정보가 없습니다.")
     }
 
     fun getPathFromUri(uri: Uri?): String {
