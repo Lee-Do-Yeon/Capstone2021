@@ -52,10 +52,7 @@ class ExifActivity : AppCompatActivity() {
         Log.d("test_before_delete", "$lat, $lng")
 
         val textview : TextView = findViewById(R.id.textview)
-        if(lat != null || lng != null) {
-            textview.setText("위치정보 탐지 : \n $lat | $lng")
-        }else
-            textview.setText("위치 정보가 없습니다.")
+        textview.setText("$lat | $lng")
     }
 
     fun getPathFromUri(uri: Uri?): String {
@@ -74,15 +71,14 @@ class ExifActivity : AppCompatActivity() {
         exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, null)
         exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, null)
 
-        exif.saveAttributes();
+//        exif.saveAttributes();
 
         val lat = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE) //위도
         val lng = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE) //경도
 
         val textview : TextView = findViewById(R.id.textview)
-        textview.setText("$lat | $lng")
+        textview.setText("위치정보가 제거 되었습니다.")
         Log.d("test_after_delete", "$lat | $lng")
     }
 
 }
-

@@ -18,7 +18,6 @@ package com.example.capstone2021;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -127,7 +126,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "EXIF");
                     Intent intent = new Intent(ACTION_PICK);
                     intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
-                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+//                    intent.setAction(Intent.ACTION_GET_CONTENT);
+//                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
                     startActivityForResult(intent, EXIF_IMAGE_REQUEST);
 
 
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(ACTION_PICK);
             intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
             //이미지 다중선택
-            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+//            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 //            intent.setAction(Intent.ACTION_GET_CONTENT);
             startActivityForResult(intent,OCR_IMAGE_REQUEST);
         }
@@ -163,25 +163,23 @@ public class MainActivity extends AppCompatActivity {
             try{
                 Uri uri= data.getData();
                 intent.putExtra("uri", uri.toString());
-                intent.putExtra("img",data);
+//                intent.putExtra("img",data);
                 startActivity(intent);
 
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            intent = getIntent();
-            mImageDetails = intent.getParcelableExtra("data");
         }else if (requestCode == OCR_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             Log.d(TAG, "start OCR");
 //            uploadImage(data.getData());
 //            Uri uri = data.getData();
 //            Intent intent = new Intent(getApplicationContext(), RecieverActivity.class);
-            ClipData clipdata = data.getClipData();
-            for(int i=0; i < clipdata.getItemCount(); i++){
-                Uri uri = clipdata.getItemAt(i).getUri();
-                uploadImage(uri);
-            }
+//            ClipData clipdata = data.getClipData();
+//            for(int i=0; i < clipdata.getItemCount(); i++){
+//                Uri uri = clipdata.getItemAt(i).getUri();
+                uploadImage(data.getData());
+//            }
 //            startActivity(intent);
 //                mMainImage.setImageURI(data.getData());
         }else if (requestCode == OCR_EXIF_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {

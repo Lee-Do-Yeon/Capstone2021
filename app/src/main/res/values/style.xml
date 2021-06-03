@@ -14,7 +14,11 @@
 
     <style name="AppTheme.NoActionBar" />
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" >
+        <item name="android:minWidth">300dp</item>
+        <item name="android:maxWidth">480dp</item>
+        <item name="android:width">380dp</item>
+    </style>
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
