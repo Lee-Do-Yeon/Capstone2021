@@ -313,21 +313,21 @@ public class MainActivity extends AppCompatActivity {
             imageDetail.setText("개인정보가 없습니다.");
 
             if (matcher.find()){
-                imageDetail.setText("주민 번호 탐지 : "+ matcher.group());
+                imageDetail.setText("주민 번호 : "+ matcher.group());
                 list.add(String.format("no.%d -> 주민 번호 탐지 : %s\n", count_OCR++ , matcher.group()));
             }
             //핸드폰 번호 탐지
             regex = "\\b01(?:0|1|[6-9])-(?:\\d{3}|\\d{4})-\\d{4}\\b";
             matcher = Pattern.compile(regex).matcher(requestOCR);
             if (matcher.find()) {
-                imageDetail.setText("핸드폰 번호 탐지 : " + matcher.group());
+                imageDetail.setText("핸드폰 번호 : " + matcher.group());
                 list.add(String.format("no.%d -> 핸드폰 번호 탐지 : %s\n", count_OCR++, matcher.group()));
             }
             //이메일 탐지
             regex = "\\b[a-zA-Z0-9]+@[a-zA-Z0-9]+.[a-zA-Z]+\\b";
             matcher = Pattern.compile(regex).matcher(requestOCR);
             if (matcher.find()){
-                imageDetail.setText("이메일 탐지 : "+ matcher.group());
+                imageDetail.setText("이메일 : "+ matcher.group());
                 list.add(String.format("no.%d -> 이메일 탐지 : %s\n", count_OCR++, matcher.group()));
             }
         }
