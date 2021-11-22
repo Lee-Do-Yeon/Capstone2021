@@ -53,6 +53,7 @@ class ExifActivity : AppCompatActivity() {
         Log.d("test_before_delete", "$lat, $lng")
 
         val textview : TextView = findViewById(R.id.textview)
+        textview.setText("$lat : $lng")
         if(lat != null || lng != null) {
             textview.setText("위치정보 탐지 : \n $lat | $lng")
         }else
